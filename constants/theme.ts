@@ -11,5 +11,6 @@ export const COLORS = {
   pastelBlue: '#DDEEFF',
   pastelPurple: '#E9DFFF',
   pastelYellow: '#FFF1B8',
+  pastelPink: '#FFE0EC',
   danger: '#FF6B6B',
-};
+} as const;

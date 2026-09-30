@@ -9,12 +9,12 @@ A modern, fast, and feature-packed React Native app built with **Expo**, **Expo 
 - **📷 Fast QR Code Scanner**: Scan QR codes instantly using `expo-camera` with torch/flash toggle and real-time haptic feedback.
 - **🎨 Custom QR Code Generator**: Generate QR codes for:
   - Plain Text & Web URLs
-  - Wi-Fi Networks (SSID, Password, Encryption type)
+  - Wi-Fi Networks (SSID, Password, Security type, Hidden network)
   - Emails & Phone Numbers
   - Custom QR Colors & Styles
 - **📜 History & Favorites**: Local storage powered by `@react-native-async-storage/async-storage`. Filter by scanned or generated QR codes.
 - **📤 Easy Sharing & Copying**: Copy generated or scanned payloads to clipboard or trigger native system sharing.
-- **⚡ NativeWind (Tailwind CSS v4)**: Styled with modern design systems and smooth micro-animations.
+- **⚡ NativeWind v4 (Tailwind CSS v3)**: Styled with modern design systems and smooth micro-animations.
 
 ---
 
@@ -72,7 +72,7 @@ bun --version
 
 ## 🏗️ Local EAS Builds (APK / AAB / IPA)
 
-Build native release packages directly on your local machine using EAS CLI (requires Android SDK for Android builds, and Xcode on macOS for iOS builds):
+Build native release packages directly on your local machine using EAS CLI via `bunx eas` — it is intentionally not a project dependency (requires Android SDK for Android builds, and Xcode on macOS for iOS builds):
 
 | Output Format     | Command                 | Description                                                         |
 | :---------------- | :---------------------- | :------------------------------------------------------------------ |

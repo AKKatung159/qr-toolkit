@@ -1,40 +1,29 @@
 import React from 'react';
-import { View, Text, ScrollView, Alert, Share } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Scan, PlusSquare, QrCode, Sparkles } from 'lucide-react-native';
-import * as Clipboard from 'expo-clipboard';
 
 import { Button } from '../../components/Button';
 import { HistoryItem } from '../../components/HistoryItem';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useHistory } from '../../hooks/useHistory';
+import { useHistoryActions } from '../../hooks/useHistoryActions';
 import { COLORS } from '../../constants/theme';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { history, deleteHistoryItem } = useHistory();
-
-  const handleCopy = async (content: string) => {
-    await Clipboard.setStringAsync(content);
-    Alert.alert('Copied!', 'Content copied to clipboard.');
-  };
-
-  const handleShare = async (content: string) => {
-    try {
-      await Share.share({ message: content });
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const { history } = useHistory();
+  const { copy, share, confirmDelete } = useHistoryActions();
+  const recent = history.slice(0, 3);
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FFF9F5]">
+    <SafeAreaView edges={['top']} className="flex-1 bg-bg">
       <ScreenHeader
         title="QR Toolkit"
         subtitle="Scan or create QR codes quickly & privately"
         rightElement={
-          <View className="w-10 h-10 rounded-full bg-[#FFEBDD] items-center justify-center">
+          <View className="w-10 h-10 rounded-full bg-primary-pastel items-center justify-center">
             <QrCode size={22} color={COLORS.primary} />
           </View>
         }
@@ -43,7 +32,7 @@ export default function HomeScreen() {
       <ScrollView className="flex-1 px-5 pt-2" showsVerticalScrollIndicator={false}>
         {/* Banner */}
         <View
-          className="bg-[#171717] rounded-3xl p-6 mb-6 relative overflow-hidden"
+          className="bg-dark rounded-3xl p-6 mb-6 relative overflow-hidden"
           style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },
@@ -54,7 +43,7 @@ export default function HomeScreen() {
         >
           <View className="flex-row items-center mb-2">
             <Sparkles size={16} color={COLORS.primary} />
-            <Text className="text-xs font-bold text-[#FF8A3D] uppercase tracking-wider ml-1.5">
+            <Text className="text-xs font-bold text-primary uppercase tracking-wider ml-1.5">
               Offline & Private
             </Text>
           </View>
@@ -65,14 +54,14 @@ export default function HomeScreen() {
             Scan physical codes or design high-contrast QR codes in seconds.
           </Text>
 
-          <View className="flex-row space-x-3">
+          <View className="flex-row">
             <View className="flex-1 mr-2">
               <Button
                 title="Scan QR"
                 onPress={() => router.push('/(tabs)/scan')}
                 variant="primary"
                 size="md"
-                icon={<Scan size={18} color="#FFF" />}
+                icon={<Scan size={18} color={COLORS.white} />}
                 fullWidth
               />
             </View>
@@ -82,16 +71,18 @@ export default function HomeScreen() {
                 onPress={() => router.push('/(tabs)/generate')}
                 variant="secondary"
                 size="md"
-                icon={<PlusSquare size={18} color="#171717" />}
+                icon={<PlusSquare size={18} color={COLORS.black} />}
                 fullWidth
               />
             </View>
           </View>
         </View>
 
-        {/* Quick Actions */}
+        {/* Recent */}
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-lg font-bold text-[#171717]">Recent Activity</Text>
+          <Text className="text-lg font-bold text-dark" accessibilityRole="header">
+            Recent Activity
+          </Text>
           {history.length > 0 && (
             <Button
               title="See All"
@@ -102,10 +93,10 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {history.slice(0, 3).length === 0 ? (
+        {recent.length === 0 ? (
           <View className="bg-white rounded-2xl p-6 border border-gray-100 items-center justify-center mb-6">
-            <Text className="text-base font-bold text-[#171717] mb-1">No QR Codes Yet</Text>
-            <Text className="text-xs text-gray-400 text-center mb-4">
+            <Text className="text-base font-bold text-dark mb-1">No QR Codes Yet</Text>
+            <Text className="text-xs text-gray-500 text-center mb-4">
               Scanned or generated QR codes will show up here.
             </Text>
             <Button
@@ -116,14 +107,14 @@ export default function HomeScreen() {
             />
           </View>
         ) : (
-          history.slice(0, 3).map((item) => (
+          recent.map((item) => (
             <HistoryItem
               key={item.id}
               item={item}
-              onPress={() => router.push('/(tabs)/history')}
-              onCopy={() => handleCopy(item.content)}
-              onShare={() => handleShare(item.content)}
-              onDelete={() => deleteHistoryItem(item.id)}
+              onPress={() => router.push({ pathname: '/(tabs)/history', params: { id: item.id } })}
+              onCopy={() => copy(item.content)}
+              onShare={() => share(item.content)}
+              onDelete={() => confirmDelete(item)}
             />
           ))
         )}

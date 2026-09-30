@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { QRHistoryItem, QRMode, QRType } from '../types/qr';
+import { QRHistoryItem, QRMetadata, QRMode, QRType } from '../types/qr';
 import { detectQRType } from './qr';
 
 const STORAGE_KEY = '@qr_toolkit_history_v1';
@@ -8,7 +8,8 @@ export async function getHistory(): Promise<QRHistoryItem[]> {
   try {
     const jsonStr = await AsyncStorage.getItem(STORAGE_KEY);
     if (!jsonStr) return [];
-    return JSON.parse(jsonStr);
+    const parsed: unknown = JSON.parse(jsonStr);
+    return Array.isArray(parsed) ? (parsed as QRHistoryItem[]) : [];
   } catch (error) {
     console.error('Error reading QR history:', error);
     return [];
@@ -20,7 +21,7 @@ export async function addHistoryItem(
   mode: QRMode,
   customType?: QRType,
   customTitle?: string,
-  metadata?: any
+  metadata?: QRMetadata
 ): Promise<QRHistoryItem> {
   const history = await getHistory();
   const detected = detectQRType(content);

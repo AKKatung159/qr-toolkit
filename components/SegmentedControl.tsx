@@ -24,7 +24,9 @@ export function SegmentedControl<T extends string>({
             key={opt.value}
             onPress={() => onSelect(opt.value)}
             activeOpacity={0.8}
-            className={`flex-1 py-2 rounded-xl items-center justify-center ${
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isSelected }}
+            className={`flex-1 py-2.5 rounded-xl items-center justify-center ${
               isSelected ? 'bg-white' : ''
             }`}
             style={
@@ -39,9 +41,7 @@ export function SegmentedControl<T extends string>({
                 : undefined
             }
           >
-            <Text
-              className={`text-xs font-bold ${isSelected ? 'text-[#171717]' : 'text-gray-500'}`}
-            >
+            <Text className={`text-xs font-bold ${isSelected ? 'text-dark' : 'text-gray-500'}`}>
               {opt.label}
             </Text>
           </TouchableOpacity>

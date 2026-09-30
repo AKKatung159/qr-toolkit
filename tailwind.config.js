@@ -19,6 +19,7 @@ module.exports = {
           blue: '#DDEEFF',
           purple: '#E9DFFF',
           yellow: '#FFF1B8',
+          pink: '#FFE0EC',
         },
         bg: '#FFF9F5',
         danger: '#FF6B6B',

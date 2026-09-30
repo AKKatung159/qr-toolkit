@@ -2,6 +2,7 @@
   "expo": {
     "name": "QR Toolkit",
     "slug": "qr-toolkit",
+    "scheme": "qrtoolkit",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -19,7 +20,8 @@
         {
           "cameraPermission": "Allow QR Toolkit to access your camera to scan QR codes."
         }
-      ]
+      ],
+      "expo-sharing"
     ]
   }
 }

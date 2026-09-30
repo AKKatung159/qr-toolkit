@@ -26,17 +26,17 @@ export const Button: React.FC<ButtonProps> = ({
   const getContainerVariantStyles = () => {
     switch (variant) {
       case 'primary':
-        return 'bg-[#FF8A3D] active:bg-[#e0752d]';
+        return 'bg-primary active:bg-[#e0752d]';
       case 'secondary':
-        return 'bg-[#FFEBDD] active:bg-[#ffd8bd]';
+        return 'bg-primary-pastel active:bg-primary-light';
       case 'dark':
-        return 'bg-[#171717] active:bg-[#2A2A2A]';
+        return 'bg-dark active:bg-dark-gray';
       case 'danger':
-        return 'bg-[#FF6B6B] active:bg-[#e05353]';
+        return 'bg-danger active:bg-[#e05353]';
       case 'ghost':
         return 'bg-transparent active:bg-gray-100';
       default:
-        return 'bg-[#FF8A3D]';
+        return 'bg-primary';
     }
   };
 
@@ -62,14 +62,19 @@ export const Button: React.FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
       className={`flex-row items-center justify-center ${getContainerVariantStyles()} ${getContainerSizeStyles()} ${fullWidth ? 'w-full' : ''}`}
       style={{
         opacity: disabled ? 0.5 : 1,
-        shadowColor: variant === 'primary' ? COLORS.primary : '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: variant === 'primary' ? 0.25 : 0.05,
-        shadowRadius: 4,
-        elevation: variant === 'primary' ? 3 : 1,
+        // Android draws elevation shadows as a box, which looks broken on transparent buttons.
+        ...(variant !== 'ghost' && {
+          shadowColor: variant === 'primary' ? COLORS.primary : '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: variant === 'primary' ? 0.25 : 0.05,
+          shadowRadius: 4,
+          elevation: variant === 'primary' ? 3 : 1,
+        }),
       }}
     >
       {loading ? (

@@ -1,35 +1,68 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Share } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import { View, Text, Alert, TouchableOpacity, SectionList, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
-import { Trash2, Copy, Share2, Download, X } from 'lucide-react-native';
-import * as Clipboard from 'expo-clipboard';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
+import { Trash2, Copy, Share2 } from 'lucide-react-native';
 
+import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { HistoryItem } from '../../components/HistoryItem';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { TypeBadge } from '../../components/TypeBadge';
+import { useToast } from '../../components/Toast';
 import { useHistory } from '../../hooks/useHistory';
-import { QRHistoryItem } from '../../types/qr';
+import { useHistoryActions } from '../../hooks/useHistoryActions';
+import { QRCodeRef, shareQrImage } from '../../services/share';
+import { QRHistoryItem, QRMode } from '../../types/qr';
 import { COLORS } from '../../constants/theme';
 
+type Filter = 'all' | QRMode;
+
+function sectionTitle(date: Date): string {
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function groupByDay(items: QRHistoryItem[]) {
+  const sections: { title: string; data: QRHistoryItem[] }[] = [];
+  for (const item of items) {
+    const title = sectionTitle(new Date(item.createdAt));
+    const last = sections[sections.length - 1];
+    if (last && last.title === title) last.data.push(item);
+    else sections.push({ title, data: [item] });
+  }
+  return sections;
+}
+
 export default function HistoryScreen() {
-  const svgRef = useRef<any>(null);
+  const qrRef = useRef<QRCodeRef | null>(null);
   const router = useRouter();
-  const { history, deleteHistoryItem, clearHistory } = useHistory();
-  const [filter, setFilter] = useState<'all' | 'scanned' | 'generated'>('all');
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { history, clearHistory } = useHistory();
+  const { copy, share, confirmDelete } = useHistoryActions();
+  const showToast = useToast();
+  const [filter, setFilter] = useState<Filter>('all');
   const [selectedItem, setSelectedItem] = useState<QRHistoryItem | null>(null);
 
-  const filteredHistory = history.filter((item) => {
-    if (filter === 'scanned') return item.mode === 'scanned';
-    if (filter === 'generated') return item.mode === 'generated';
-    return true;
-  });
+  // Home's "Recent" list opens an item via /history?id=...
+  const detailItem = selectedItem ?? history.find((entry) => entry.id === id) ?? null;
+
+  const closeDetail = () => {
+    setSelectedItem(null);
+    if (id) router.setParams({ id: undefined });
+  };
+
+  const sections = useMemo(
+    () => groupByDay(filter === 'all' ? history : history.filter((item) => item.mode === filter)),
+    [history, filter]
+  );
 
   const handleClearAll = () => {
     Alert.alert(
@@ -37,93 +70,31 @@ export default function HistoryScreen() {
       'Are you sure you want to delete all saved QR history? This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete All', style: 'destructive', onPress: clearHistory },
+        {
+          text: 'Delete All',
+          style: 'destructive',
+          onPress: async () => {
+            await clearHistory();
+            showToast('History cleared');
+          },
+        },
       ]
     );
   };
 
-  const getQrImageUri = (): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      if (!svgRef.current) {
-        reject(new Error('QR preview is not available'));
-        return;
-      }
-      svgRef.current.toDataURL(async (data: string) => {
-        try {
-          const fileUri = `${FileSystem.cacheDirectory}qr_code_${Date.now()}.png`;
-          await FileSystem.writeAsStringAsync(fileUri, data, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          resolve(fileUri);
-        } catch (err) {
-          reject(err);
-        }
-      });
-    });
-  };
-
-  const handleDownloadQr = async () => {
-    try {
-      const fileUri = await getQrImageUri();
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri, {
-          mimeType: 'image/png',
-          dialogTitle: 'Save / Download QR Code',
-        });
-      } else {
-        Alert.alert('Error', 'Sharing/Saving is not supported on this device.');
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Could not save QR code image.');
-    }
-  };
-
-  const handleShareQrImage = async () => {
-    try {
-      const fileUri = await getQrImageUri();
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri, {
-          mimeType: 'image/png',
-          dialogTitle: 'Share QR Code Image',
-        });
-      } else {
-        if (selectedItem) {
-          await Share.share({ message: selectedItem.content });
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      if (selectedItem) {
-        await Share.share({ message: selectedItem.content });
-      }
-    }
-  };
-
-  const handleShareText = async (content: string) => {
-    try {
-      await Share.share({ message: content });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleCopy = async (content: string) => {
-    await Clipboard.setStringAsync(content);
-    Alert.alert('Copied!', 'Content copied to clipboard.');
-  };
-
   return (
-    <SafeAreaView className="flex-1 bg-[#FFF9F5]">
+    <SafeAreaView edges={['top']} className="flex-1 bg-bg">
       <ScreenHeader
         title="History"
-        subtitle={`${history.length} items saved locally`}
+        subtitle={`${history.length} ${history.length === 1 ? 'item' : 'items'} saved locally`}
         rightElement={
           history.length > 0 ? (
             <TouchableOpacity
               onPress={handleClearAll}
-              className="p-2 bg-red-50 rounded-full"
+              className="w-11 h-11 bg-red-50 rounded-full items-center justify-center"
               activeOpacity={0.7}
+              accessibilityLabel="Clear all history"
+              accessibilityRole="button"
             >
               <Trash2 size={20} color={COLORS.danger} />
             </TouchableOpacity>
@@ -142,99 +113,99 @@ export default function HistoryScreen() {
           onSelect={setFilter}
         />
 
-        {filteredHistory.length === 0 ? (
+        {sections.length === 0 ? (
           <EmptyState
-            title="No History Found"
-            description="Scanned and generated QR codes will automatically save here so you can reuse them anytime."
+            title={history.length === 0 ? 'No QR codes yet' : `No ${filter} QR codes`}
+            description="Scan or generate your first QR code and it will appear here."
             actionTitle="Scan QR Code"
             onAction={() => router.push('/(tabs)/scan')}
           />
         ) : (
-          <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-            {filteredHistory.map((item) => (
+          <SectionList
+            sections={sections}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            stickySectionHeadersEnabled={false}
+            contentContainerStyle={{ paddingBottom: 24 }}
+            renderSectionHeader={({ section }) => (
+              <Text
+                className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-1"
+                accessibilityRole="header"
+              >
+                {section.title}
+              </Text>
+            )}
+            renderItem={({ item }) => (
               <HistoryItem
-                key={item.id}
                 item={item}
                 onPress={() => setSelectedItem(item)}
-                onCopy={() => handleCopy(item.content)}
-                onShare={() => handleShareText(item.content)}
-                onDelete={() => deleteHistoryItem(item.id)}
+                onCopy={() => copy(item.content)}
+                onShare={() => share(item.content)}
+                onDelete={() => confirmDelete(item)}
               />
-            ))}
-          </ScrollView>
+            )}
+          />
         )}
       </View>
 
-      {/* Item Detail Modal */}
-      <Modal visible={!!selectedItem} transparent animationType="slide">
-        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <View className="bg-white rounded-t-3xl p-6 border-t border-gray-100">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-lg font-bold text-[#171717]">QR Details</Text>
-              <TouchableOpacity
-                onPress={() => setSelectedItem(null)}
-                className="p-2 rounded-full bg-gray-100"
-              >
-                <X size={18} color={COLORS.darkGray} />
-              </TouchableOpacity>
+      {/* Item Detail Sheet */}
+      <BottomSheet
+        visible={!!detailItem}
+        title="QR Details"
+        onClose={closeDetail}
+        headerRight={detailItem ? <TypeBadge type={detailItem.type} /> : undefined}
+      >
+        {detailItem && (
+          <>
+            <View className="items-center justify-center p-5 bg-bg rounded-3xl border border-orange-100 mb-4">
+              <QRCode
+                getRef={(c: QRCodeRef | null) => (qrRef.current = c)}
+                value={detailItem.content}
+                size={180}
+                color={COLORS.black}
+                backgroundColor={COLORS.white}
+                quietZone={8}
+              />
+              <View className="mt-3 px-3.5 py-1.5 bg-white rounded-full border border-gray-100 items-center justify-center max-w-[90%]">
+                <Text
+                  className="text-xs font-semibold text-dark text-center"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {detailItem.title}
+                </Text>
+              </View>
             </View>
 
-            {selectedItem && (
-              <View className="items-center justify-center p-6 bg-[#FFF9F5] rounded-3xl border border-orange-100 mb-4">
-                <QRCode
-                  getRef={(c) => (svgRef.current = c)}
-                  value={selectedItem.content}
-                  size={180}
-                  color={COLORS.black}
-                  backgroundColor="transparent"
-                />
-                <View className="mt-3 px-3.5 py-1.5 bg-white rounded-full border border-gray-100 items-center justify-center max-w-[90%]">
-                  <Text
-                    className="text-xs font-semibold text-[#171717] text-center"
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {selectedItem.title}
-                  </Text>
-                </View>
-              </View>
-            )}
+            <ScrollView
+              className="bg-gray-50 rounded-2xl mb-4 border border-gray-100"
+              style={{ maxHeight: 120 }}
+              contentContainerStyle={{ padding: 16 }}
+            >
+              <Text className="text-xs text-gray-500 font-semibold mb-1">Content</Text>
+              <Text className="text-sm text-dark font-medium" selectable>
+                {detailItem.content}
+              </Text>
+            </ScrollView>
 
-            {selectedItem && (
-              <View className="mb-4">
-                <TypeBadge type={selectedItem.type} />
-                <View className="bg-gray-50 p-4 rounded-2xl mt-2 border border-gray-100">
-                  <Text className="text-xs text-gray-500 font-semibold mb-1">Payload:</Text>
-                  <Text className="text-sm text-[#171717] font-medium">{selectedItem.content}</Text>
-                </View>
-              </View>
-            )}
-
-            <View className="flex-row space-x-2 mb-3">
-              <View className="flex-1 mr-1">
+            <View className="flex-row mb-3">
+              <View className="flex-1 mr-2">
                 <Button
-                  title="Download"
-                  onPress={handleDownloadQr}
+                  title="Share QR"
+                  onPress={() => shareQrImage(qrRef.current, detailItem.content, 'Share QR Code')}
                   variant="primary"
-                  icon={<Download size={16} color="#FFF" />}
-                  fullWidth
-                />
-              </View>
-              <View className="flex-1 mr-1">
-                <Button
-                  title="Share Image"
-                  onPress={handleShareQrImage}
-                  variant="dark"
-                  icon={<Share2 size={16} color="#FFF" />}
+                  size="sm"
+                  icon={<Share2 size={16} color={COLORS.white} />}
                   fullWidth
                 />
               </View>
               <View className="flex-1">
                 <Button
-                  title="Copy Text"
-                  onPress={() => selectedItem && handleCopy(selectedItem.content)}
+                  title="Copy"
+                  onPress={() => copy(detailItem.content)}
                   variant="secondary"
-                  icon={<Copy size={16} color="#171717" />}
+                  size="sm"
+                  icon={<Copy size={16} color={COLORS.black} />}
                   fullWidth
                 />
               </View>
@@ -242,19 +213,14 @@ export default function HistoryScreen() {
 
             <Button
               title="Delete Item"
-              onPress={async () => {
-                if (selectedItem) {
-                  await deleteHistoryItem(selectedItem.id);
-                  setSelectedItem(null);
-                }
-              }}
+              onPress={() => confirmDelete(detailItem, closeDetail)}
               variant="danger"
-              icon={<Trash2 size={18} color="#FFF" />}
+              icon={<Trash2 size={18} color={COLORS.white} />}
               fullWidth
             />
-          </View>
-        </View>
-      </Modal>
+          </>
+        )}
+      </BottomSheet>
     </SafeAreaView>
   );
 }

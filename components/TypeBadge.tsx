@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { QRType } from '../types/qr';
-import { Globe, FileText, Wifi, Mail, Phone } from 'lucide-react-native';
+import { Globe, FileText, Wifi, Mail, Phone, MessageSquare } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 
 interface TypeBadgeProps {
@@ -39,6 +39,13 @@ export const TypeBadge: React.FC<TypeBadgeProps> = ({ type, size = 'md' }) => {
           bg: COLORS.pastelYellow,
           color: '#92400E',
           Icon: Phone,
+        };
+      case 'sms':
+        return {
+          label: 'SMS',
+          bg: COLORS.pastelPink,
+          color: '#9D174D',
+          Icon: MessageSquare,
         };
       case 'text':
       default:
