@@ -1,8 +1,10 @@
 import React from 'react';
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
+import { ICON_STROKE } from '../constants/qrTypes';
+import { Text } from './Text';
 import { ToastHost } from './Toast';
 
 interface BottomSheetProps {
@@ -31,7 +33,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       statusBarTranslucent
       navigationBarTranslucent
     >
-      <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+      <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(23,23,23,0.45)' }}>
         <Pressable
           className="absolute inset-0"
           onPress={onClose}
@@ -39,24 +41,26 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           accessibilityRole="button"
         />
         <View
-          className="bg-white rounded-t-3xl px-6 pt-6 border-t border-gray-100"
+          className="bg-white rounded-t-3xl px-5 pt-3"
           style={{ paddingBottom: Math.max(insets.bottom, 16) + 8 }}
         >
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-lg font-bold text-dark" accessibilityRole="header">
-              {title}
-            </Text>
-            <View className="flex-row items-center">
+          <View className="w-10 h-1 rounded-full bg-line self-center mb-4" />
+          <View className="flex-row items-center justify-between mb-5">
+            <View className="flex-row items-center flex-1 pr-3">
+              <Text className="font-title text-xl text-dark mr-3" accessibilityRole="header">
+                {title}
+              </Text>
               {headerRight}
-              <TouchableOpacity
-                onPress={onClose}
-                className="w-10 h-10 ml-2 rounded-full bg-gray-100 items-center justify-center"
-                accessibilityLabel="Close"
-                accessibilityRole="button"
-              >
-                <X size={18} color={COLORS.darkGray} />
-              </TouchableOpacity>
             </View>
+            <Pressable
+              onPress={onClose}
+              className="w-11 h-11 rounded-full bg-bg items-center justify-center"
+              accessibilityLabel="Close"
+              accessibilityRole="button"
+              style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.94 : 1 }] })}
+            >
+              <X size={20} color={COLORS.black} strokeWidth={ICON_STROKE} />
+            </Pressable>
           </View>
           {children}
         </View>

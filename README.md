@@ -24,6 +24,7 @@ A modern, fast, and feature-packed React Native app built with **Expo**, **Expo 
 - **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based Routing)
 - **Styling**: [NativeWind v4](https://www.nativewind.dev/) (Tailwind CSS)
 - **Icons**: [lucide-react-native](https://lucide.dev)
+- **Font**: [Outfit](https://fonts.google.com/specimen/Outfit) via `@expo-google-fonts/outfit`
 - **QR Engine**: [react-native-qrcode-svg](https://github.com/alexeybx/react-native-qrcode-svg)
 - **Package Manager**: [Bun](https://bun.sh/)
 
@@ -72,7 +73,7 @@ bun --version
 
 ## 🏗️ Local EAS Builds (APK / AAB / IPA)
 
-Build native release packages directly on your local machine using EAS CLI via `bunx eas` — it is intentionally not a project dependency (requires Android SDK for Android builds, and Xcode on macOS for iOS builds):
+Build native release packages directly on your local machine using EAS CLI via `bunx eas`; it is intentionally not a project dependency (requires Android SDK for Android builds, and Xcode on macOS for iOS builds):
 
 | Output Format     | Command                 | Description                                                         |
 | :---------------- | :---------------------- | :------------------------------------------------------------------ |
@@ -117,13 +118,14 @@ QR Toolkit/
 - [x] History grouped by day; Home "Recent" opens the item's details
 - [x] Toast feedback for copy/save/delete; confirmation before deleting
 - [x] Accessibility labels and 44px+ touch targets for icon buttons
+- [x] Redesign: Outfit typography, grouped history lists, full-bleed scanner, one radius and shadow system
 - [x] Dependencies aligned with Expo SDK 57 (`expo-doctor` 21/21)
 - [x] ESLint 9 flat config, TypeScript and Prettier all passing
 
 ### Before release (must have)
 
 - [ ] Test scanning a real QR code on a physical Android device
-- [ ] App icon, adaptive icon and splash screen (`assets/` + `app.json`)
+- [x] App icon, adaptive + themed (monochrome) Android icon and splash screen
 - [ ] Switch from Expo Go to a development build (Expo Go will soon only support SDK 58)
 - [ ] Production build with `bun run build:aab` and a smoke test of the release APK
 - [ ] Privacy policy (required by Play Store because the app uses the camera)
@@ -146,7 +148,7 @@ QR Toolkit/
 - [ ] Export as SVG
 - [ ] Scan a QR code from an image in the gallery
 - [ ] Favorites / pinned history items
-- [ ] Dark mode
+- [ ] Dark mode (the palette currently has light values only)
 
 ---
 

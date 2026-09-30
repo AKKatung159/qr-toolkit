@@ -1,7 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Text, View } from 'react-native';
+import { Animated, View } from 'react-native';
 import { CheckCircle2 } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, SHADOW } from '../constants/theme';
+import { Text } from './Text';
 
 interface ToastMessage {
   id: number;
@@ -71,17 +72,10 @@ export function ToastHost({ bottomOffset = 88 }: { bottomOffset?: number }) {
         accessibilityLiveRegion="polite"
         accessibilityRole="alert"
         className="flex-row items-center bg-dark rounded-full px-4 py-3"
-        style={{
-          opacity,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 8,
-          elevation: 6,
-        }}
+        style={{ opacity, boxShadow: SHADOW.lifted }}
       >
         <CheckCircle2 size={18} color={COLORS.primary} />
-        <Text className="text-white text-sm font-semibold ml-2">{toast.message}</Text>
+        <Text className="font-body-medium text-white text-[15px] ml-2">{toast.message}</Text>
       </Animated.View>
     </View>
   );

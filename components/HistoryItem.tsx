@@ -1,117 +1,72 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { ScanLine, Sparkles } from 'lucide-react-native';
 import { QRHistoryItem } from '../types/qr';
-import { TypeBadge } from './TypeBadge';
-import { Copy, Share2, Trash2, ArrowUpRight, ScanLine, Sparkles } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, SHADOW } from '../constants/theme';
+import { ICON_STROKE } from '../constants/qrTypes';
+import { Text } from './Text';
+import { TypeIcon } from './TypeBadge';
 
-interface HistoryItemProps {
-  item: QRHistoryItem;
-  onPress: () => void;
-  onCopy?: () => void;
-  onShare?: () => void;
-  onDelete?: () => void;
-}
-
-interface ActionButtonProps {
-  label: string;
-  onPress: () => void;
-  children: React.ReactNode;
-}
-
-const ActionButton: React.FC<ActionButtonProps> = ({ label, onPress, children }) => (
-  <TouchableOpacity
-    onPress={onPress}
-    className="w-11 h-11 items-center justify-center rounded-full mr-1"
-    accessibilityLabel={label}
-    accessibilityRole="button"
-    hitSlop={4}
-  >
-    {children}
-  </TouchableOpacity>
-);
-
-export const HistoryItem: React.FC<HistoryItemProps> = ({
-  item,
-  onPress,
-  onCopy,
-  onShare,
-  onDelete,
-}) => {
-  const createdAt = new Date(item.createdAt);
-  const isToday = createdAt.toDateString() === new Date().toDateString();
-  const formattedTime = createdAt.toLocaleString(undefined, {
+function formatTime(iso: string): string {
+  const date = new Date(iso);
+  const isToday = date.toDateString() === new Date().toDateString();
+  return date.toLocaleString(undefined, {
     ...(isToday ? {} : { month: 'short', day: 'numeric' }),
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+interface HistoryItemProps {
+  item: QRHistoryItem;
+  onPress: () => void;
+}
+
+/** One row inside a <HistoryGroup>. Copy, share and delete live in the detail sheet. */
+export const HistoryItem: React.FC<HistoryItemProps> = ({ item, onPress }) => {
+  const time = formatTime(item.createdAt);
   const isScanned = item.mode === 'scanned';
   const ModeIcon = isScanned ? ScanLine : Sparkles;
-  const modeColor = isScanned ? '#2563EB' : '#C2410C';
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
-      activeOpacity={0.7}
       accessibilityRole="button"
-      accessibilityLabel={`${item.title}, ${item.mode} at ${formattedTime}. Open details`}
-      className="bg-white px-4 pt-4 pb-1 rounded-2xl mb-3 border border-gray-100"
-      style={{
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 6,
-        elevation: 2,
-      }}
+      accessibilityLabel={`${item.title}, ${item.mode} ${time}. Open details`}
+      className="flex-row items-center px-4 py-3.5"
+      style={({ pressed }) => ({ backgroundColor: pressed ? COLORS.background : 'transparent' })}
     >
-      <View className="flex-row items-center justify-between mb-2">
-        <View className="flex-row items-center">
-          <TypeBadge type={item.type} size="sm" />
-          <View
-            className={`flex-row items-center px-2 py-1 rounded-full ml-2 ${
-              isScanned ? 'bg-blue-50' : 'bg-orange-50'
-            }`}
-          >
-            <ModeIcon size={11} color={modeColor} />
-            <Text
-              className="text-[10px] font-bold uppercase tracking-wider ml-1"
-              style={{ color: modeColor }}
-            >
-              {item.mode}
-            </Text>
-          </View>
-        </View>
-        <Text className="text-xs text-gray-500 font-medium">{formattedTime}</Text>
+      <TypeIcon type={item.type} />
+      <View className="flex-1 ml-3.5">
+        <Text className="font-body-semibold text-base text-dark" numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text className="text-sm text-muted mt-0.5" numberOfLines={1}>
+          {item.content}
+        </Text>
       </View>
-
-      <Text className="font-bold text-base text-dark mb-1" numberOfLines={1}>
-        {item.title}
-      </Text>
-
-      <Text className="text-xs text-gray-500 mb-2" numberOfLines={2}>
-        {item.content}
-      </Text>
-
-      <View className="flex-row items-center justify-between border-t border-gray-50">
-        <View className="flex-row items-center -ml-3">
-          {onCopy && (
-            <ActionButton label="Copy content" onPress={onCopy}>
-              <Copy size={18} color={COLORS.gray} />
-            </ActionButton>
-          )}
-          {onShare && (
-            <ActionButton label="Share content" onPress={onShare}>
-              <Share2 size={18} color={COLORS.gray} />
-            </ActionButton>
-          )}
-          {onDelete && (
-            <ActionButton label="Delete from history" onPress={onDelete}>
-              <Trash2 size={18} color={COLORS.danger} />
-            </ActionButton>
-          )}
+      <View className="items-end ml-3">
+        <Text className="text-xs text-muted">{time}</Text>
+        <View className="flex-row items-center mt-1">
+          <ModeIcon size={12} color={COLORS.gray} strokeWidth={ICON_STROKE} />
+          <Text className="text-xs text-muted ml-1">{isScanned ? 'Scanned' : 'Created'}</Text>
         </View>
-        <ArrowUpRight size={18} color={COLORS.primary} />
       </View>
-    </TouchableOpacity>
+    </Pressable>
+  );
+};
+
+/** White rounded surface that groups rows with hairline dividers. */
+export const HistoryGroup: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const rows = React.Children.toArray(children);
+  return (
+    <View className="bg-white rounded-3xl overflow-hidden mb-6" style={{ boxShadow: SHADOW.soft }}>
+      {rows.map((row, i) => (
+        <View key={i}>
+          {i > 0 && <View className="h-px bg-line ml-[74px]" />}
+          {row}
+        </View>
+      ))}
+    </View>
   );
 };

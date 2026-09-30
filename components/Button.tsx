@@ -1,16 +1,48 @@
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
+import { Pressable, ActivityIndicator, View } from 'react-native';
 import { COLORS } from '../constants/theme';
+import { Text } from './Text';
+
+type Variant = 'primary' | 'secondary' | 'dark' | 'danger' | 'ghost';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'dark' | 'danger' | 'ghost';
+  variant?: Variant;
   size?: 'sm' | 'md' | 'lg';
   icon?: React.ReactNode;
   loading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
+  accessibilityLabel?: string;
+}
+
+// Orange carries dark text: white on #FF8A3D is ~2.4:1 and fails WCAG AA.
+const CONTAINER: Record<Variant, string> = {
+  primary: 'bg-primary',
+  secondary: 'bg-primary-pastel',
+  dark: 'bg-dark',
+  danger: 'bg-white border border-danger',
+  ghost: 'bg-transparent',
+};
+
+const TEXT_COLOR: Record<Variant, string> = {
+  primary: COLORS.black,
+  secondary: COLORS.black,
+  dark: COLORS.white,
+  danger: COLORS.dangerText,
+  ghost: COLORS.black,
+};
+
+const SIZE = {
+  sm: { container: 'h-11 px-4', font: 15 },
+  md: { container: 'h-14 px-6', font: 16 },
+  lg: { container: 'h-16 px-8', font: 18 },
+};
+
+/** Icon color that matches a button variant's label. */
+export function buttonIconColor(variant: Variant = 'primary'): string {
+  return TEXT_COLOR[variant];
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -22,77 +54,39 @@ export const Button: React.FC<ButtonProps> = ({
   loading = false,
   disabled = false,
   fullWidth = false,
+  accessibilityLabel,
 }) => {
-  const getContainerVariantStyles = () => {
-    switch (variant) {
-      case 'primary':
-        return 'bg-primary active:bg-[#e0752d]';
-      case 'secondary':
-        return 'bg-primary-pastel active:bg-primary-light';
-      case 'dark':
-        return 'bg-dark active:bg-dark-gray';
-      case 'danger':
-        return 'bg-danger active:bg-[#e05353]';
-      case 'ghost':
-        return 'bg-transparent active:bg-gray-100';
-      default:
-        return 'bg-primary';
-    }
-  };
-
-  const getTextColor = () => {
-    if (variant === 'secondary' || variant === 'ghost') return COLORS.black;
-    return COLORS.white;
-  };
-
-  const getContainerSizeStyles = () => {
-    switch (size) {
-      case 'sm':
-        return 'px-4 py-2 rounded-full';
-      case 'lg':
-        return 'px-8 py-4 rounded-2xl';
-      case 'md':
-      default:
-        return 'px-6 py-3.5 rounded-xl';
-    }
-  };
+  const isDisabled = disabled || loading;
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.8}
+      disabled={isDisabled}
       accessibilityRole="button"
-      accessibilityState={{ disabled: disabled || loading, busy: loading }}
-      className={`flex-row items-center justify-center ${getContainerVariantStyles()} ${getContainerSizeStyles()} ${fullWidth ? 'w-full' : ''}`}
-      style={{
-        opacity: disabled ? 0.5 : 1,
-        // Android draws elevation shadows as a box, which looks broken on transparent buttons.
-        ...(variant !== 'ghost' && {
-          shadowColor: variant === 'primary' ? COLORS.primary : '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: variant === 'primary' ? 0.25 : 0.05,
-          shadowRadius: 4,
-          elevation: variant === 'primary' ? 3 : 1,
-        }),
-      }}
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
+      className={`flex-row items-center justify-center rounded-full ${CONTAINER[variant]} ${
+        SIZE[size].container
+      } ${fullWidth ? 'w-full' : ''}`}
+      style={({ pressed }) => ({
+        opacity: isDisabled ? 0.5 : 1,
+        transform: [{ scale: pressed ? 0.97 : 1 }],
+      })}
     >
       {loading ? (
-        <ActivityIndicator color={getTextColor()} />
+        <ActivityIndicator color={TEXT_COLOR[variant]} />
       ) : (
         <View className="flex-row items-center justify-center">
           {icon && <View className="mr-2">{icon}</View>}
           <Text
-            className="font-bold text-center"
-            style={{
-              color: getTextColor(),
-              fontSize: size === 'lg' ? 18 : size === 'sm' ? 14 : 16,
-            }}
+            className="font-body-semibold"
+            numberOfLines={1}
+            style={{ color: TEXT_COLOR[variant], fontSize: SIZE[size].font }}
           >
             {title}
           </Text>
         </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };

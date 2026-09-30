@@ -1,43 +1,56 @@
-import React from 'react';
-import { View, Text, TextInput, TextInputProps } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, TextInputProps } from 'react-native';
 import { COLORS } from '../constants/theme';
+import { Text } from './Text';
 
 interface InputProps extends TextInputProps {
-  label?: string;
+  label: string;
+  hint?: string;
   error?: string;
-  leftIcon?: React.ReactNode;
 }
 
 export const Input: React.FC<InputProps> = ({
   label,
+  hint,
   error,
-  leftIcon,
-  className = '',
+  multiline,
+  onFocus,
+  onBlur,
   ...props
 }) => {
+  const [focused, setFocused] = useState(false);
+  const borderColor = error ? COLORS.dangerText : focused ? COLORS.black : COLORS.line;
+
   return (
-    <View className="mb-4 w-full">
-      {label && <Text className="text-sm font-semibold text-dark mb-1.5 ml-1">{label}</Text>}
-      <View
-        className={`flex-row items-center border rounded-2xl px-4 py-3.5 bg-white ${
-          error ? 'border-red-500' : 'border-gray-200 focus:border-primary'
-        } ${className}`}
+    <View className="mb-5 w-full">
+      <Text className="font-body-semibold text-sm text-dark mb-2">{label}</Text>
+      <TextInput
+        placeholderTextColor={COLORS.gray}
+        className="font-body text-base text-dark bg-bg rounded-2xl px-4"
         style={{
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.03,
-          shadowRadius: 2,
-          elevation: 1,
+          borderWidth: 1.5,
+          borderColor,
+          minHeight: multiline ? 104 : 52,
+          paddingTop: multiline ? 14 : 0,
+          textAlignVertical: multiline ? 'top' : 'center',
         }}
-      >
-        {leftIcon && <View className="mr-3">{leftIcon}</View>}
-        <TextInput
-          placeholderTextColor={COLORS.gray}
-          className="flex-1 text-base text-dark"
-          {...props}
-        />
-      </View>
-      {error && <Text className="text-xs text-red-500 mt-1 ml-1">{error}</Text>}
+        {...props}
+        multiline={multiline}
+        accessibilityLabel={label}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
+      />
+      {error ? (
+        <Text className="text-sm text-danger-text mt-1.5">{error}</Text>
+      ) : hint ? (
+        <Text className="text-sm text-muted mt-1.5">{hint}</Text>
+      ) : null}
     </View>
   );
 };

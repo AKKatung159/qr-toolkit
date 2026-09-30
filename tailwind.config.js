@@ -22,10 +22,20 @@ module.exports = {
           pink: '#FFE0EC',
         },
         bg: '#FFF9F5',
-        danger: '#FF6B6B',
-        neutral: {
-          gray: '#737373',
+        line: '#F2E6DB',
+        danger: {
+          DEFAULT: '#FF6B6B',
+          text: '#C23B3B',
         },
+        muted: '#737373',
+      },
+      // Named so they never collide with Tailwind's font-weight utilities.
+      fontFamily: {
+        body: ['Outfit_400Regular'],
+        'body-medium': ['Outfit_500Medium'],
+        'body-semibold': ['Outfit_600SemiBold'],
+        title: ['Outfit_700Bold'],
+        display: ['Outfit_800ExtraBold'],
       },
     },
   },

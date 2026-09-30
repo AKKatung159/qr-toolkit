@@ -5,13 +5,19 @@
     "scheme": "qrtoolkit",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.qrtoolkit.app"
     },
     "android": {
-      "package": "com.qrtoolkit.app"
+      "package": "com.qrtoolkit.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/monochrome-icon.png",
+        "backgroundColor": "#FF8A3D"
+      }
     },
     "plugins": [
       "expo-router",
@@ -21,7 +27,17 @@
           "cameraPermission": "Allow QR Toolkit to access your camera to scan QR codes."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#FFF9F5"
+        }
+      ],
+      "expo-font"
     ]
   }
 }
