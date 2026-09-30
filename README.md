@@ -128,7 +128,7 @@ QR Toolkit/
 - [ ] Production build with `bun run build:aab` and a smoke test of the release APK
 - [ ] Privacy policy (required by Play Store because the app uses the camera)
 - [ ] Play Store listing: screenshots, short/full description, content rating
-- [ ] Fix the License section: the repo is private and has no `LICENSE` file yet
+- [x] ISC `LICENSE` file added; repository is public
 
 ### V1 polish (should have)
 

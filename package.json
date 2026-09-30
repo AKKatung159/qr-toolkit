@@ -19,7 +19,7 @@
     "build:ios-sim": "eas build --platform ios --profile preview --local"
   },
   "keywords": [],
-  "author": "",
+  "author": "AK Katung",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
