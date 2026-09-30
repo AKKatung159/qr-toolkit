@@ -103,6 +103,53 @@ QR Toolkit/
 
 ---
 
+## ✅ Roadmap / Checklist
+
+### Done
+
+- [x] Shared history state across tabs (scans/generations show up immediately)
+- [x] Camera and torch stop when the Scan tab loses focus
+- [x] Camera permission: denied → "Open Settings", re-checked on return to the app
+- [x] Android back button closes all bottom sheets
+- [x] WiFi generator: security type, hidden network, escaped special characters
+- [x] SMS detection when scanning
+- [x] Inline form validation and keyboard handling
+- [x] History grouped by day; Home "Recent" opens the item's details
+- [x] Toast feedback for copy/save/delete; confirmation before deleting
+- [x] Accessibility labels and 44px+ touch targets for icon buttons
+- [x] Dependencies aligned with Expo SDK 57 (`expo-doctor` 21/21)
+- [x] ESLint 9 flat config, TypeScript and Prettier all passing
+
+### Before release (must have)
+
+- [ ] Test scanning a real QR code on a physical Android device
+- [ ] App icon, adaptive icon and splash screen (`assets/` + `app.json`)
+- [ ] Switch from Expo Go to a development build (Expo Go will soon only support SDK 58)
+- [ ] Production build with `bun run build:aab` and a smoke test of the release APK
+- [ ] Privacy policy (required by Play Store because the app uses the camera)
+- [ ] Play Store listing: screenshots, short/full description, content rating
+- [ ] Fix the License section: the repo is private and has no `LICENSE` file yet
+
+### V1 polish (should have)
+
+- [ ] "Save" writes the QR image to the gallery (`expo-media-library`) instead of opening the share sheet
+- [ ] SMS generator form (detection already exists)
+- [ ] Stricter URL detection (plain text like `hello.world` is currently treated as a URL)
+- [ ] Unit tests for `services/qr.ts` (payload builders and type detection)
+- [ ] Test on small screens and with large system font sizes
+- [ ] Verify screen reader (TalkBack) flow on every screen
+
+### V2 ideas (nice to have)
+
+- [ ] Logo inside the QR code
+- [ ] Custom colors and QR templates
+- [ ] Export as SVG
+- [ ] Scan a QR code from an image in the gallery
+- [ ] Favorites / pinned history items
+- [ ] Dark mode
+
+---
+
 ## 📝 License
 
 This project is open-source under the [ISC License](LICENSE).
