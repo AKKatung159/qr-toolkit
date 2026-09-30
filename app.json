@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "QR Toolkit",
+    "slug": "qr-toolkit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.qrtoolkit.app"
+    },
+    "android": {
+      "package": "com.qrtoolkit.app"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow QR Toolkit to access your camera to scan QR codes."
+        }
+      ]
+    ]
+  }
+}
